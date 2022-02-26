@@ -7,12 +7,12 @@ import (
 
 type File struct {
 	path string
-	mode StorageMode
+	mode Mode
 	flag int
 	perm os.FileMode
 }
 
-func NewFile(path string, mode StorageMode, perm os.FileMode) *File {
+func NewFile(path string, mode Mode, perm os.FileMode) *File {
 	flag := os.O_RDONLY
 	if mode == ModeWrite {
 		flag = os.O_APPEND | os.O_CREATE | os.O_WRONLY
@@ -25,7 +25,7 @@ func NewFile(path string, mode StorageMode, perm os.FileMode) *File {
 	}
 }
 
-func (s File) GetMode() StorageMode {
+func (s File) GetMode() Mode {
 	return s.mode
 }
 

@@ -11,11 +11,11 @@ import (
 
 // QuartzDB contains the database interface
 type QuartzDB struct {
-	storage storage.QuartzStorage
+	storage storage.QuartzDBStorage
 }
 
 // NewQuartzDB creates new database instance given a storage client
-func NewQuartzDB(storage storage.QuartzStorage) *QuartzDB {
+func NewQuartzDB(storage storage.QuartzDBStorage) *QuartzDB {
 	return &QuartzDB{storage: storage}
 }
 

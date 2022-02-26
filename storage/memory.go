@@ -7,24 +7,28 @@ import (
 
 const day = time.Hour * 24
 
+// MemoryShard implements the Shard interface for the Memory storage
 type MemoryShard struct {
 	date    time.Time
 	records []*RawRecord
 }
 
+// Memory implements the QuartzDBStorage client interface in memory
+// useful for testing as the data is not persisted
 type Memory struct {
-	mode    StorageMode
+	mode    Mode
 	storage map[string]*MemoryShard
 }
 
-func NewMemory(mode StorageMode) *Memory {
+// NewMemory creates new memory client
+func NewMemory(mode Mode) *Memory {
 	return &Memory{
 		mode:    mode,
 		storage: make(map[string]*MemoryShard),
 	}
 }
 
-func (s Memory) GetMode() StorageMode {
+func (s Memory) GetMode() Mode {
 	return s.mode
 }
 
