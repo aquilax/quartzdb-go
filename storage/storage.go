@@ -12,6 +12,8 @@ const (
 	ModeWrite Mode = 'w'
 )
 
+var truncateDay = time.Hour * 24
+
 // Record is an interface for single record item. Every record must be timestamped and serializeabe to array of bytes
 type Record interface {
 	Time() time.Time
@@ -24,7 +26,7 @@ type QueryCallback = func(record Record) (stop bool, err error)
 // Shard is a date based shard of records. A shard must contain only records from the same UTC date
 type Shard interface {
 	GetDate() time.Time
-	Add(record []Record) (int, error)
+	Add(records []Record) (int, error)
 	GetAllCallback(callback QueryCallback) error
 }
 

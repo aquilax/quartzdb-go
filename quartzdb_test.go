@@ -1,6 +1,7 @@
 package quartzdb
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -22,6 +23,7 @@ func TestQuartzDB_EndToEnd(t *testing.T) {
 
 	rec1 := storage.NewRawRecord(ts, []byte(`{"test": 1}`))
 	rec2 := storage.NewRawRecord(ts.Add(24*time.Hour), []byte(`{"test": 2}`))
+
 	rec3 := storage.NewRawRecord(ts.Add(48*time.Hour), []byte(`{"test": 3}`))
 	rec4 := storage.NewRawRecord(ts.Add(48*time.Hour), []byte(`{"test": 4}`))
 	rec5 := storage.NewRawRecord(ts.Add(48*time.Hour), []byte(`{"test": 5}`))
@@ -41,6 +43,7 @@ func TestQuartzDB_EndToEnd(t *testing.T) {
 	if _, err := db.Add(rec5); err != nil {
 		t.Fatal(err)
 	}
+
 	// test GetByDate
 	r, _ := db.GetByDate(ts)
 	assert(t, r != nil, "record is found")
@@ -50,9 +53,57 @@ func TestQuartzDB_EndToEnd(t *testing.T) {
 	if r == nil {
 		t.Fatalf("expected record but nil returned")
 	}
+
 	// test QueryLast
 	res, _ := db.QueryLast(2)
 	assert(t, len(res) == 2, "expected two records in the last shard")
+	assert(t, reflect.DeepEqual(res[0].Bytes(), rec4.Bytes()), "expected rec4 first")
+	assert(t, reflect.DeepEqual(res[1].Bytes(), rec5.Bytes()), "expected rec5 last")
+}
+
+func TestQuartzDB_EndToEndFile(t *testing.T) {
+	fileStorage := storage.NewFile("/tmp/1", storage.ModeWrite, 0666)
+	db := NewQuartzDB(fileStorage)
+
+	ts := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	db.storage.GetShard(ts)
+	rec1 := storage.NewRawRecord(ts, []byte(`{"test": 1}`))
+	rec2 := storage.NewRawRecord(ts.Add(24*time.Hour), []byte(`{"test": 2}`))
+
+	rec3 := storage.NewRawRecord(ts.Add(48*time.Hour), []byte(`{"test": 3}`))
+	rec4 := storage.NewRawRecord(ts.Add(48*time.Hour), []byte(`{"test": 4}`))
+	rec5 := storage.NewRawRecord(ts.Add(48*time.Hour), []byte(`{"test": 5}`))
+
+	if _, err := db.Add(rec1); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Add(rec2); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Add(rec3); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Add(rec4); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Add(rec5); err != nil {
+		t.Fatal(err)
+	}
+
+	// test GetByDate
+	r, _ := db.GetByDate(ts)
+	assert(t, r != nil, "record is found")
+	if r != nil {
+		assert(t, reflect.DeepEqual((*r).Bytes(), rec1.Bytes()), "expected rec1")
+	}
+	if r == nil {
+		t.Fatalf("expected record but nil returned")
+	}
+
+	// test QueryLast
+	res, err := db.QueryLast(2)
+	assert(t, err == nil, fmt.Sprintf("expected no error got %v", err))
+	assert(t, len(res) == 2, fmt.Sprintf("expected %d records in the last shard, got %d", 2, len(res)))
 	assert(t, reflect.DeepEqual(res[0].Bytes(), rec4.Bytes()), "expected rec4 first")
 	assert(t, reflect.DeepEqual(res[1].Bytes(), rec5.Bytes()), "expected rec5 last")
 }

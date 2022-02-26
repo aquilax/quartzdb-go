@@ -5,8 +5,6 @@ import (
 	"time"
 )
 
-const day = time.Hour * 24
-
 // MemoryShard implements the Shard interface for the Memory storage
 type MemoryShard struct {
 	date    time.Time
@@ -35,7 +33,7 @@ func (s Memory) GetMode() Mode {
 func (s *MemoryShard) Add(records []Record) (int, error) {
 	added := 0
 	for _, r := range records {
-		if !s.date.Equal(r.Time().Truncate(day)) {
+		if !s.date.Equal(r.Time().Truncate(truncateDay)) {
 			return -1, fmt.Errorf("attempt to add record to wrong shard")
 		}
 		s.records = append(s.records, &RawRecord{r.Time(), r.Bytes()})
@@ -61,7 +59,10 @@ func (s *Memory) GetShard(ts time.Time) (Shard, error) {
 	key := getKey(ts)
 	_, exists := s.storage[key]
 	if !exists {
-		(*s).storage[key] = &MemoryShard{ts.Truncate(day), make([]*RawRecord, 0)}
+		if s.GetMode() == ModeRead {
+			return nil, fmt.Errorf("shard %s does not exist", key)
+		}
+		(*s).storage[key] = &MemoryShard{ts.Truncate(truncateDay), make([]*RawRecord, 0)}
 	}
 	return s.storage[key], nil
 }

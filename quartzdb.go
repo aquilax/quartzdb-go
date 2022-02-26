@@ -33,6 +33,9 @@ func (q QuartzDB) Add(record storage.Record) (int, error) {
 
 // QueryRangeCallback calls the callback function for each record that is dated between the from and to timestamps
 func (q QuartzDB) QueryRangeCallback(from time.Time, to time.Time, callback storage.QueryCallback) error {
+	if from.After(to) {
+		return fmt.Errorf("start date is after the end date")
+	}
 	shards, err := q.storage.GetShardsRange(from, to)
 	if err != nil {
 		return err
