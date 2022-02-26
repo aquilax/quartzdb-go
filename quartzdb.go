@@ -1,3 +1,5 @@
+// Package quartzdb implements QuartzDB client in go
+// QuartzDB is flat-file database optimized to hold time-series data.
 package quartzdb
 
 import (
